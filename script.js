@@ -2,6 +2,7 @@ const width = 28;
 const grid = document.querySelector(".grid");
 const scoreBoard = document.getElementById("score");
 let sq = [];
+let score = 0;
 
 const layout = [
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -82,15 +83,117 @@ function control(e) {
               !sq[pacmanCurrentIdx-1].classList.contains('wall') &&
               pacmanCurrentIdx % width !== 0) pacmanCurrentIdx -= 1;
           console.log('pressed left');
+          if (pacmanCurrentIdx === 364) {
+              pacmanCurrentIdx = 391;
+          }
           break;
       case 39:
           if (!sq[pacmanCurrentIdx+1].classList.contains('ghost-lair') &&
               !sq[pacmanCurrentIdx+1].classList.contains('wall') &&
               pacmanCurrentIdx % width < width-1) pacmanCurrentIdx += 1;
           console.log('pressed right');
+          if (pacmanCurrentIdx === 391) {
+            pacmanCurrentIdx = 364;
+        }
           break;
   }
   sq[pacmanCurrentIdx].classList.add('pacman');
+  pacDotEaten();
+  powerPelletEaten();
+  checkForWin();
+  checkGameOver()
 }
 
-document.addEventListener('keyup', control);
+document.addEventListener('keyu;p', control);
+
+function pacDotEaten() {
+    if (sq[pacmanCurrentIdx].classList.contains('pac-dot')) {
+        sq[pacmanCurrentIdx].classList.remove('pac-dot');
+        score++;
+        scoreBoard.innerHTML = score;
+    }
+}
+
+function powerPelletEaten() {
+    if (sq[pacmanCurrentIdx].classList.contains('power-pellet')) {
+        sq[pacmanCurrentIdx].classList.remove('power-pellet');
+        score += 10;
+        ghosts.forEach(ghost => ghost.isScared = true);
+        setTimeout(unScareGhost, 100000);
+    }
+}
+
+function unScareGhost() {
+    ghosts.forEach(ghost => ghost.isScared = false);
+}
+
+class Ghost {
+    constructor(className, startIndex, speed) {
+        this.className = className;
+        this.startIndex = startIndex;
+        this.speed = speed;
+        this.currentIndex = startIndex;
+        this.isScared = false;
+        this.timerId = NaN;
+    }
+}
+
+const ghosts = [
+    new Ghost('blinky', 348, 250),
+    new Ghost('pinky', 376, 400),
+    new Ghost('inky', 351, 300),
+    new Ghost('clyde', 379, 500)
+]
+
+ghosts.forEach(ghost => {
+    sq[ghost.currentIndex].classList.add(ghost.className);
+    sq[ghost.currentIndex].classList.add('ghost');
+});
+
+ghosts.forEach(ghost => moveGhost(ghost));
+
+function moveGhost(ghost) {
+    let directions = [-1, +1, -width, +width];
+    let direction = directions[Math.floor(Math.random() * directions.length)];
+    console.log(direction);
+    ghost.timerId = setInterval(function() {
+        if (!sq[ghost.currentIndex + direction].classList.contains('wall') &&
+            !sq[ghost.currentIndex + direction].classList.contains('ghost')) {
+                sq[ghost.currentIndex].classList.remove(ghost.className);
+                sq[ghost.currentIndex].classList.remove('ghost', 'scared-ghost');
+                ghost.currentIndex += direction;
+                sq[ghost.currentIndex].classList.add(ghost.className);
+                sq[ghost.currentIndex].classList.add('ghost');
+            } else {
+                direction = directions[Math.floor(Math.random() * directions.length)];
+            }
+            
+            if (ghost.isScared) {
+                sq[ghost.currentIndex].classList.add('scared-ghost');
+            }
+
+            if (ghost.isScared && sq[ghost.currentIndex].classList.contains('pacman')) {
+                sq[ghost.currentIndex].classList.remove('ghost', ghost.className, 'scared-ghost');
+                ghost.currentIndex = ghost.startIndex;
+                score += 100;
+                sq[ghost.currentIndex].classList.add('ghost', ghost.className);
+            }
+        checkGameOver();
+    }, ghost.speed)
+}
+
+function checkGameOver() {
+    if (sq[pacmanCurrentIdx].classList.contains('ghost') && !sq[pacmanCurrentIdx].classList.contains('scared-ghost')) {
+        ghosts.forEach(ghost => clearInterval(ghost.timerId));
+        document.removeEventListener('keyup', control);
+        alert('Game Over');
+    }
+}
+
+function checkForWin() {
+    if (score === 274) {
+        ghosts.forEach(ghost => clearInterval(ghost.timerId));
+        document.removeEventListener('keyup', control);
+        alert('Yay!, You Win!')
+    }
+}

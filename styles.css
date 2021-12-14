@@ -36,3 +36,28 @@ body, html {
     border-radius: 7.5px;
     border: none;
 }
+
+.blinky {
+    background-color: red;
+    border: none;
+}
+
+.pinky {
+    background-color: palevioletred;
+    border: none;
+}
+
+.inky {
+    background-color: peru;
+    border: none;
+}
+
+.clyde {
+    background-color: rosybrown;
+    border: none;
+}
+
+.scared-ghost {
+    background-color: aquamarine;
+    border: none;
+}
